@@ -76,7 +76,7 @@ pipeline {
             }
         }
         
-         stage('Docker image push') {
+        stage('Docker image push') {
             steps {
                 script {
                 withDockerRegistry(credentialsId: 'docker-cred') {
@@ -85,6 +85,30 @@ pipeline {
                 }
             }
         }
+        
+        stage('Kubernets deploy') {
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: 'demo-eks', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://561B102E6B78C3CE81A7AD931B2EED45.gr7.us-east-1.eks.amazonaws.com') {
+                       sh "kubectl apply -f deployment-service.yml"
+                       sleep 30
+                    }
+            }
+            
+        }
+        
+        stage('Verify deploy') {
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: 'demo-eks', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://561B102E6B78C3CE81A7AD931B2EED45.gr7.us-east-1.eks.amazonaws.com') {
+                       sh "kubectl get pods"
+                       sh "kubectl get svc"
+                       
+                    }
+            }
+            
+        }
+        
+        
+        
     }  
 }
 
